@@ -1,35 +1,39 @@
 const Hapi = require('hapi');
 
 const server = new Hapi.Server();
+server.connection({ port: process.env.PORT || 80, host: 'localhost' });
 
-server.connection({
-  host: 'localhost',
-  port: process.env.PORT,
-});
-
-server.route({
-  method: 'GET',
-  path: '/',
-  handler: (request, reply) => {
-    // eslint-disable-next-line
-    console.log(request, reply);
-    reply('Hello World');
-  },
-});
-
-server.route({
-  method: 'GET',
-  path: '/',
-  handler: (request, reply) => {
-    // eslint-disable-next-line
-    console.log(request, reply);
-  },
-});
-
-server.start((err) => {
+server.register(require('inert'), (err) => {
   if (err) {
     throw err;
   }
+  // Serving Static Content
+  server.route({
+    method: 'GET',
+    path: '/{param*}',
+    handler: {
+      directory: {
+        path: 'public',
+        index: ['index.html'],
+        listing: true,
+      },
+    },
+  });
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: (request, reply) => {
+      reply('Hi, Syy');
+    },
+  });
+
   // eslint-disable-next-line
-  console.log(`Server running at ${server.info.uri}:${server.info.port}`);
+  server.start(err => {
+    if (err) {
+      throw err;
+    }
+    // eslint-disable-next-line
+    console.log('Server running at:', server.info.uri);
+  });
 });
